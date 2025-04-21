@@ -2,6 +2,7 @@
 from utils.config_loader import load_config
 from utils.ssh_client import create_ssh_connection
 from utils.screen_orientation import get_screen_orientation
+from utils.command_initializer import ensure_all_commands_exist
 from pynput import keyboard
 
 ssh = None
@@ -53,6 +54,7 @@ if __name__ == "__main__":
     try:
         ssh = create_ssh_connection(kindle_ip, username, password)
         print("SSH Connection established.")
+        ensure_all_commands_exist(ssh)
     except Exception as e:
         print(f"SSH Error: {e}")
         exit(1)  # 连接失败直接退出
