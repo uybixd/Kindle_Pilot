@@ -1,15 +1,5 @@
 {
     "kindle_ip": "192.168.31.204",
     "username": "root",
-    "password": "kindle",
-    "commands": {
-        "portrait": {
-            "forward": "cat /mnt/us/FlipCmd/next_portrait.event > /dev/input/event1 && /usr/bin/powerd_test -i",
-            "prev": "cat /mnt/us/FlipCmd/prev_portrait.event > /dev/input/event1 && /usr/bin/powerd_test -i"
-        },
-        "landscape": {
-            "forward": "cat /mnt/us/FlipCmd/next_landscape.event > /dev/input/event1 && /usr/bin/powerd_test -i",
-            "prev": "cat /mnt/us/FlipCmd/prev_landscape.event > /dev/input/event1 && /usr/bin/powerd_test -i"
-        }
-    }
+    "password": "kindle"
 }

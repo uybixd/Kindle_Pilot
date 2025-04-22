@@ -8,16 +8,8 @@ def test_load_valid_config(tmp_path):
         "kindle_ip": "192.168.1.100",
         "username": "root",
         "password": "kindle",
-        "commands": {
-            "portrait": {
-                "forward": "echo portrait next",
-                "prev": "echo portrait prev"
-            },
-            "landscape": {
-                "forward": "echo landscape next",
-                "prev": "echo landscape prev"
-            }
-        }
+        "forward_command": "cat /mnt/us/FlipCmd/next_portrait.event > /dev/input/event1",
+        "prev_command": "cat /mnt/us/FlipCmd/prev_portrait.event > /dev/input/event1"
     }
     config_file = tmp_path / "valid_config.json"
     config_file.write_text(json.dumps(config_data), encoding="utf-8")

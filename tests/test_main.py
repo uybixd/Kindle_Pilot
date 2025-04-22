@@ -1,10 +1,9 @@
 import pytest
 from unittest.mock import patch, MagicMock
-import main  # 你可能需要改成 from Kindle_Helper import main
+import main  # 如果项目结构支持，可以改为 from Kindle_Helper import main
 
 def test_send_command_forward():
-    # 模拟方向为 portrait，配置中也提供命令
-    with patch("main.get_screen_orientation", return_value="portrait"), \
+    with patch.object(main, "event", "event1"), \
          patch.object(main, "ssh") as mock_ssh:
 
         mock_stdout = MagicMock()
@@ -14,15 +13,6 @@ def test_send_command_forward():
 
         mock_ssh.exec_command.return_value = (None, mock_stdout, mock_stderr)
 
-        main.config = {
-            "commands": {
-                "portrait": {
-                    "forward": "echo forward",
-                    "prev": "echo prev"
-                }
-            }
-        }
+        main.send_command(main.ssh, "forward", main.event)
 
-        main.send_command("forward")
-
-        mock_ssh.exec_command.assert_called_with("echo forward")
+        assert mock_ssh.exec_command.call_args[0][0].startswith("cat /mnt/us/FlipCmd/")

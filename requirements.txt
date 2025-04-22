@@ -1,3 +1,2 @@
-paramiko==3.5.1         # 用于 SSH 控制 Kindle
-pynput==1.8.1           # 监听本地键盘输入
-pytest==8.3.1           # 单元测试框架
+paramiko>=2.11.0       # 控制 Kindle 的 SSH 模块
+pynput>=1.7.6          # 用于监听本地键盘事件
