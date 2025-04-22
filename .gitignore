@@ -43,3 +43,8 @@ dmypy.json
 FlipCmd/
 
 log/
+
+# .gitignore
+build/
+dist/
+*.spec

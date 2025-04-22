@@ -40,7 +40,7 @@
 **1. Clone this repository**
 
 ```
-git clone https://github.com/yourname/Kindle_Pilot.git
+git clone https://github.com/uybixd/Kindle_Pilot.git
 cd Kindle_Pilot
 ```
 
