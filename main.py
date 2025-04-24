@@ -7,23 +7,29 @@ from utils.send_command import send_command
 from utils.device_detector import detect_touch_device
 from pynput import keyboard
 
-ssh = None
-event = None  # 新增变量
+def make_on_press(config, event):
+    def on_press(key):
+        try:
+            if key in [keyboard.Key.down, keyboard.Key.right, keyboard.Key.up, keyboard.Key.left]:
+                ssh = create_ssh_connection(config["kindle_ip"], config["username"], config["password"])
+                print("SSH Connection established.")
+                if key in [keyboard.Key.down, keyboard.Key.right]:
+                    print("Next Page")
+                    send_command(ssh, "forward", event)
+                elif key in [keyboard.Key.up, keyboard.Key.left]:
+                    print("Previous Page")
+                    send_command(ssh, "prev", event)
+                ssh.close()
+            elif key == keyboard.Key.esc:
+                print("Exiting...")
+                return False
+            else:
+                print("未定义输入")
+        except Exception as e:
+            print(f"Key handling error: {e}")
+    return on_press
 
-def on_press(key):
-    try:
-        if key == keyboard.Key.down or key == keyboard.Key.right:
-            print("Next Page")
-            send_command(ssh, "forward", event)
-        elif key == keyboard.Key.up or key == keyboard.Key.left:
-            print("Previous Page")
-            send_command(ssh, "prev", event)
-        elif key == keyboard.Key.esc:
-            print("Exiting...")
-            ssh.close()  # 关闭 SSH 连接
-            return False  # 退出监听
-    except AttributeError:
-        pass
+event = None  # 新增变量
 
 if __name__ == "__main__":
     # 从 config/config.json 加载 Kindle 连接信息
@@ -44,10 +50,11 @@ if __name__ == "__main__":
         event = detect_touch_device(ssh)  # 初始化一次 event
         if not event:
             event = input("未能自动识别触控设备，请手动输入（如 event1）: ").strip()
+        ssh.close()
     except Exception as e:
         print(f"SSH Error: {e}")
         exit(1)  # 连接失败直接退出
 
     print("Listening for key presses... Press ESC to exit.")
-    with keyboard.Listener(on_press=on_press) as listener:
+    with keyboard.Listener(on_press=make_on_press(config, event)) as listener:
         listener.join()
