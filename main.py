@@ -32,9 +32,9 @@ def make_on_press(config, event):
 event = None  # 新增变量
 
 if __name__ == "__main__":
-    # 从 config/config.json 加载 Kindle 连接信息
+    # 从 config/user_config.json 加载 Kindle 连接信息
     try:
-        config = load_config()
+        config = load_config("config/user_config.json")
         kindle_ip = config["kindle_ip"]
         username = config["username"]
         password = config["password"]

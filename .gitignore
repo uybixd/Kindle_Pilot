@@ -48,3 +48,9 @@ log/
 build/
 dist/
 *.spec
+
+# video_script
+video_script/
+
+# icon
+icon/
