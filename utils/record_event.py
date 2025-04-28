@@ -28,7 +28,9 @@ def record_single_command(ssh, name, remote_path, device="/dev/input/event1", du
     
     ssh.exec_command("mkdir -p /mnt/us/FlipCmd")
     cmd = f"timeout {duration} cat {device} > {remote_path}"
-    ssh.exec_command(cmd)[1].channel.recv_exit_status()
+    stdin, stdout, stderr = ssh.exec_command(cmd)
+    time.sleep(duration + 1)
+    stdout.channel.close()
     
     print(f"✅ 已完成录制：{remote_path}")
     while True:
@@ -43,6 +45,11 @@ def record_single_command(ssh, name, remote_path, device="/dev/input/event1", du
             print("🔁 再次尝试执行命令...")
 
 def record_all_commands(ssh):
+    from utils.ssh_client import create_ssh_connection
+    from utils.config_loader import load_config
+
+    config = load_config()
+
     cmd_list = [
         ("竖屏下一页", "/mnt/us/FlipCmd/next_portrait.event"),
         ("竖屏上一页", "/mnt/us/FlipCmd/prev_portrait.event"),
@@ -51,5 +58,8 @@ def record_all_commands(ssh):
     ]
     print("🧭 将引导你录制 4 个翻页命令：\n")
     for name, path in cmd_list:
+        print(f"🔌 正在连接 Kindle 设备...")
+        ssh = create_ssh_connection(config["kindle_ip"], config["username"], config["password"])
         record_single_command(ssh, name, path)
+        ssh.close()
     print("\n🎉 所有翻页命令已录制完毕！")
