@@ -4,6 +4,10 @@
 
 **Kindle Pilot** 是一个轻量级的 Kindle 远程控制工具。通过 SSH 重放已录制的触控手势实现远程翻页，无需额外硬件即可操作。
 
+补充一个视频教程：【教程-翻页笔/键盘 遥控 kindle翻页】 https://www.bilibili.com/video/BV1JsLDzAEH2/?share_source=copy_web&vd_source=d9f751aff1782643133f83d15e916fa8
+
+windows版下载链接 蓝奏云：https://wwwb.lanzoup.com/b00zxpwq5i 密码：b9fb
+
 
 
 [🌐 English Version](README.md)
