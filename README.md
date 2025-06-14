@@ -6,6 +6,10 @@
 
 
 
+📺 [**Demo Video (Bilibili)**](https://www.bilibili.com/video/BV1daXuY4EAU/?share_source=copy_web&vd_source=d9f751aff1782643133f83d15e916fa8) — *Use a 2.4G clicker to remotely turn pages on your Kindle*
+
+
+
 [🇨🇳 中文说明](README.zh.md)
 
 
