@@ -28,10 +28,6 @@
 > - You need to install either **UsbNetLite** or **UsbNet** on the Kindle to enable SSH access.
 > - If running from source, Python 3.8+ must be installed on your computer.
 >
-> 💡 Alternatively, we provide **pre-packaged executables** (no Python required):
->
-> - For Windows x86 (tested on Windows 10 and later)
-> - For macOS (Apple Silicon, macOS 13+)
 
 **🚀 Getting Started**
 
