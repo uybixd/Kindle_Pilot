@@ -8,7 +8,7 @@
 
 windows版下载链接 蓝奏云：https://wwwb.lanzoup.com/b00zxpwq5i 密码：b9fb
 
-
+MacOS 可执行文件：https://wwwb.lanzn.com/ihUyn329vdaj， 密码同上
 
 [🌐 English Version](README.md)
 
