@@ -5,6 +5,7 @@ from utils.ssh_client import create_ssh_connection
 from utils.command_initializer import ensure_all_commands_exist
 from utils.send_command import send_command
 from utils.device_detector import detect_touch_device
+from utils.send_books import send_books
 from pynput import keyboard
 
 def make_on_press(config, event):
@@ -20,6 +21,20 @@ def make_on_press(config, event):
                     print("Previous Page")
                     send_command(ssh, "prev", event)
                 ssh.close()
+            # ==== Press 's' to sync local books to Kindle ====
+            elif hasattr(key, 'char') and key.char == 's':
+                print("Starting sync...")
+                try:
+                    send_books(
+                        ip=config["kindle_ip"],
+                        username=config["username"],
+                        password=config["password"],
+                        local_dir="books",  # local folder to sync
+                        # remote_dir left as default in send_books (Downloads/Items01)
+                    )
+                except Exception as sync_err:
+                    print(f"Sync error: {sync_err}")
+            # ==================================================
             elif key == keyboard.Key.esc:
                 print("Exiting...")
                 return False
@@ -55,6 +70,9 @@ if __name__ == "__main__":
         print(f"SSH Error: {e}")
         exit(1)  # 连接失败直接退出
 
-    print("Listening for key presses... Press ESC to exit.")
+    print("Listening for key presses...\n"
+          "→ Arrow keys: turn pages\n"
+          "→ Press 's' : sync books from ./books to Kindle\n"
+          "→ Press ESC : exit")
     with keyboard.Listener(on_press=make_on_press(config, event)) as listener:
         listener.join()

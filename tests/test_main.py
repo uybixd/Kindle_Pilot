@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import patch, MagicMock
-from main import send_command
+from utils.send_command import send_command
 
 def test_send_command_forward():
     mock_ssh = MagicMock()
