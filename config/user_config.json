@@ -1,5 +1,6 @@
 {
     "kindle_ip": "192.168.31.204",
     "username": "root",
-    "password": "kindle"
+    "password": "kindle",
+    "event": "event1"
 }

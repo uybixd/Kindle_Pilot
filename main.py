@@ -57,18 +57,32 @@ if __name__ == "__main__":
         print(f"加载配置失败: {e}")
         exit(1)
 
-    # 创建 SSH 连接
-    try:
-        ssh = create_ssh_connection(kindle_ip, username, password)
-        print("SSH Connection established.")
-        ensure_all_commands_exist(ssh)
-        event = detect_touch_device(ssh)  # 初始化一次 event
-        if not event:
-            event = input("未能自动识别触控设备，请手动输入（如 event1）: ").strip()
-        ssh.close()
-    except Exception as e:
-        print(f"SSH Error: {e}")
-        exit(1)  # 连接失败直接退出
+    # 仅在未配置 event 时才调用 detect_touch_device
+    event = None
+    if config.get("event"):
+        event = config["event"]
+        print(f"✅ 从配置文件使用触控设备: /dev/input/{event}")
+    else:
+        ssh = None
+        try:
+            ssh = create_ssh_connection(kindle_ip, username, password)
+            print("SSH Connection established.")
+            ensure_all_commands_exist(ssh)
+            detected = detect_touch_device(ssh)
+            if detected:
+                event = detected
+                print(f"✅ 自动识别触控设备: /dev/input/{event}")
+            else:
+                event = "event1"
+                print("❌ 自动识别失败，已临时使用默认: /dev/input/event1")
+                print("👉 请打开 config/user_config.json，手动添加一行 \"event\": \"eventX\"（例如: \"event\": \"event3\"）")
+                print("👉 在 /proc/bus/input/devices 中找到 N: Name=\"pt_mt\" 的块，其下 Handlers=... 中的 eventX 即为正确值")
+        except Exception as e:
+            print(f"SSH Error: {e}")
+            exit(1)
+        finally:
+            if ssh:
+                ssh.close()
 
     print("Listening for key presses...\n"
           "→ Arrow keys: turn pages\n"

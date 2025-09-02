@@ -25,6 +25,7 @@ from typing import Dict, List
 
 import stat
 import posixpath as ppath
+import shutil
 
 from .ssh_client import create_ssh_connection  # expects your existing helper
 
@@ -80,12 +81,24 @@ def _list_remote_all_names_casefold(sftp, base_dir: str) -> Dict[str, str]:
 
 
 def _put_with_progress(sftp, local_path: Path, remote_path: str) -> None:
-    """Upload with a tiny console progress indicator (optional nicety)."""
+    """Upload with a single-line progress indicator.
+    - Clears the current line before each update (avoid ghost text when lengths change)
+    - Truncates long filenames based on terminal width to avoid wrapping
+    """
     total = local_path.stat().st_size
 
+    # Compute a safe display width for the filename
+    term_width = shutil.get_terminal_size(fallback=(80, 20)).columns
+    # Reserve some space for numbers and percentage
+    reserve = 40  # bytes/percent and labels
+    max_name = max(10, term_width - reserve)
+    name = local_path.name
+    disp_name = (name[: max_name - 1] + "…") if len(name) > max_name else name
+
     def _cb(sent, _total=total):
-        pct = (sent / _total * 100) if _total else 100
-        print(f"\r[UP] {local_path.name}  {sent}/{_total}  {pct:5.1f}%", end="", flush=True)
+        pct = (sent * 100 // _total) if _total else 100
+        line = f"[UP] {disp_name}  {sent}/{_total}  {pct:3d}%"
+        print("\r\033[K" + line, end="", flush=True)  # \033[K clears to end of line
 
     sftp.put(str(local_path), remote_path, callback=_cb)
     print()  # newline after progress line
