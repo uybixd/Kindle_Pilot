@@ -44,8 +44,6 @@ def make_on_press(config, event):
             print(f"Key handling error: {e}")
     return on_press
 
-event = None  # 新增变量
-
 if __name__ == "__main__":
     # 从 config/user_config.json 加载 Kindle 连接信息
     try:
@@ -57,17 +55,19 @@ if __name__ == "__main__":
         print(f"加载配置失败: {e}")
         exit(1)
 
-    # 仅在未配置 event 时才调用 detect_touch_device
+    # 启动时统一确保命令存在，并在必要时自动检测 event
+    ssh = None
     event = None
-    if config.get("event"):
-        event = config["event"]
-        print(f"✅ 从配置文件使用触控设备: /dev/input/{event}")
-    else:
-        ssh = None
-        try:
-            ssh = create_ssh_connection(kindle_ip, username, password)
-            print("SSH Connection established.")
-            ensure_all_commands_exist(ssh)
+    try:
+        ssh = create_ssh_connection(kindle_ip, username, password)
+        print("SSH Connection established.")
+        # 无条件确保命令/事件文件存在
+        ensure_all_commands_exist(ssh)
+
+        if config.get("event"):
+            event = config["event"]
+            print(f"✅ 从配置文件使用触控设备: /dev/input/{event}")
+        else:
             detected = detect_touch_device(ssh)
             if detected:
                 event = detected
@@ -77,12 +77,12 @@ if __name__ == "__main__":
                 print("❌ 自动识别失败，已临时使用默认: /dev/input/event1")
                 print("👉 请打开 config/user_config.json，手动添加一行 \"event\": \"eventX\"（例如: \"event\": \"event3\"）")
                 print("👉 在 /proc/bus/input/devices 中找到 N: Name=\"pt_mt\" 的块，其下 Handlers=... 中的 eventX 即为正确值")
-        except Exception as e:
-            print(f"SSH Error: {e}")
-            exit(1)
-        finally:
-            if ssh:
-                ssh.close()
+    except Exception as e:
+        print(f"SSH Error: {e}")
+        exit(1)
+    finally:
+        if ssh:
+            ssh.close()
 
     print("Listening for key presses...\n"
           "→ Arrow keys: turn pages\n"

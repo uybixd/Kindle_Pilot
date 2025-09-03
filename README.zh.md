@@ -6,7 +6,7 @@
 
 补充一个视频教程：【教程-翻页笔/键盘 遥控 kindle翻页】 https://www.bilibili.com/video/BV1JsLDzAEH2/?share_source=copy_web&vd_source=d9f751aff1782643133f83d15e916fa8
 
-windows版下载链接 蓝奏云：https://wwwb.lanzoup.com/b00zxpwq5i 密码：b9fb
+windows版下载链接 蓝奏云：https://wwwb.lanzn.com/iV8qP358y4fa 密码：b9fb
 
 MacOS 可执行文件：https://wwwb.lanzn.com/ihUyn329vdaj， 密码同上
 
