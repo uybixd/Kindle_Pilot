@@ -20,7 +20,7 @@ def prompt_yes_no(prompt):
         if choice in ['y', 'n']:
             return choice == 'y'
 
-def record_single_command(ssh, name, remote_path, device="/dev/input/event1", duration=5):
+def record_single_command(ssh, name, remote_path, device, duration=5):
     print(f"\n🟡 请在提示后 {duration} 秒内执行：{name} 的翻页操作")
     print("💡 推荐使用滑动手势进行翻页，以避免误触。你也可以点击屏幕，但滑动更可靠。")
     input("按回车键开始录制...")
@@ -35,7 +35,7 @@ def record_single_command(ssh, name, remote_path, device="/dev/input/event1", du
     print(f"✅ 已完成录制：{remote_path}")
     while True:
         print("📤 正在尝试发送刚录制的命令以验证效果...")
-        ssh.exec_command(f"cat {remote_path} > /dev/input/event1 && /usr/bin/powerd_test -i")[1].channel.recv_exit_status()
+        ssh.exec_command(f"cat {remote_path} > {device}")[1].channel.recv_exit_status()
         result = prompt_validation()
         if result == "yes":
             break
@@ -60,6 +60,7 @@ def record_all_commands(ssh):
     for name, path in cmd_list:
         print(f"🔌 正在连接 Kindle 设备...")
         ssh = create_ssh_connection(config["kindle_ip"], config["username"], config["password"])
-        record_single_command(ssh, name, path)
+        touch_device = "/dev/input/" + config["event"]
+        record_single_command(ssh, name, path, touch_device)
         ssh.close()
     print("\n🎉 所有翻页命令已录制完毕！")

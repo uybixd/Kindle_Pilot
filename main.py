@@ -1,4 +1,7 @@
 #import paramiko
+import time
+import threading
+import queue
 from utils.config_loader import load_config
 from utils.ssh_client import create_ssh_connection
 #from utils.screen_orientation import get_screen_orientation
@@ -8,34 +11,35 @@ from utils.device_detector import detect_touch_device
 from utils.send_books import send_books
 from pynput import keyboard
 
-def make_on_press(config, event):
+def make_on_press(config, event, cmd_queue, min_interval=0.3):
+    ARROWS = {keyboard.Key.down, keyboard.Key.right, keyboard.Key.up, keyboard.Key.left}
+
     def on_press(key):
         try:
-            if key in [keyboard.Key.down, keyboard.Key.right, keyboard.Key.up, keyboard.Key.left]:
-                ssh = create_ssh_connection(config["kindle_ip"], config["username"], config["password"])
-                print("SSH Connection established.")
-                if key in [keyboard.Key.down, keyboard.Key.right]:
-                    print("Next Page")
-                    send_command(ssh, "forward", event)
-                elif key in [keyboard.Key.up, keyboard.Key.left]:
-                    print("Previous Page")
-                    send_command(ssh, "prev", event)
-                ssh.close()
-            # ==== Press 's' to sync local books to Kindle ====
-            elif hasattr(key, 'char') and key.char == 's':
+            if key in ARROWS:
+                # Enqueue command; worker will rate-limit between sends
+                if key in (keyboard.Key.down, keyboard.Key.right):
+                    cmd_queue.put("forward")
+                    # print("→ queued: forward")
+                elif key in (keyboard.Key.up, keyboard.Key.left):
+                    cmd_queue.put("prev")
+                    # print("→ queued: prev")
+                return
+
+            if hasattr(key, 'char') and key.char == 's':
                 print("Starting sync...")
                 try:
                     send_books(
                         ip=config["kindle_ip"],
                         username=config["username"],
                         password=config["password"],
-                        local_dir="books",  # local folder to sync
-                        # remote_dir left as default in send_books (Downloads/Items01)
+                        local_dir="books",
                     )
                 except Exception as sync_err:
                     print(f"Sync error: {sync_err}")
-            # ==================================================
-            elif key == keyboard.Key.esc:
+                return
+
+            if key == keyboard.Key.esc:
                 print("Exiting...")
                 return False
             else:
@@ -43,6 +47,36 @@ def make_on_press(config, event):
         except Exception as e:
             print(f"Key handling error: {e}")
     return on_press
+
+def start_command_worker(config, event, cmd_queue, running_flag, min_interval=0.45):
+    def worker():
+        while running_flag[0]:
+            try:
+                cmd = cmd_queue.get(timeout=0.1)
+            except queue.Empty:
+                continue
+            try:
+                ssh = create_ssh_connection(config["kindle_ip"], config["username"], config["password"])
+                print("SSH Connection established.")
+                if cmd == "forward":
+                    print("Next Page")
+                    send_command(ssh, "forward", event)
+                elif cmd == "prev":
+                    print("Previous Page")
+                    send_command(ssh, "prev", event)
+            except Exception as e:
+                print(f"Worker error: {e}")
+            finally:
+                try:
+                    ssh.close()
+                except Exception:
+                    pass
+                # Rate-limit between consecutive commands
+                time.sleep(min_interval)
+                cmd_queue.task_done()
+    t = threading.Thread(target=worker, daemon=True)
+    t.start()
+    return t
 
 if __name__ == "__main__":
     # 从 config/user_config.json 加载 Kindle 连接信息
@@ -88,5 +122,19 @@ if __name__ == "__main__":
           "→ Arrow keys: turn pages\n"
           "→ Press 's' : sync books from ./books to Kindle\n"
           "→ Press ESC : exit")
-    with keyboard.Listener(on_press=make_on_press(config, event)) as listener:
-        listener.join()
+    # Set up producer-consumer: key events -> queue -> worker -> Kindle
+    cmd_queue = queue.Queue()
+    running_flag = [True]
+    worker_thread = start_command_worker(config, event, cmd_queue, running_flag, min_interval=0.45)
+
+    try:
+        with keyboard.Listener(on_press=make_on_press(config, event, cmd_queue, min_interval=0.45)) as listener:
+            listener.join()
+    finally:
+        # Stop worker and drain any remaining tasks before exit
+        running_flag[0] = False
+        # Wait for queued tasks to finish (optional timeout could be added)
+        try:
+            cmd_queue.join()
+        except Exception:
+            pass
